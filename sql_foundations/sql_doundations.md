@@ -2,7 +2,7 @@
 
 A quick reference guide and revision tool for core SQL concepts and relational database basics. 
 
-This repository is adapted from the interactive curriculum at [SQLBolt](https://sqlbolt.com/). It reorganizes the foundational lessons into a structured, easily searchable format designed for fast revision and getting the basics right. 
+This repository is adapted from the interactive curriculum at [SQLBolt](https://sqlbolt.com). It reorganizes the foundational lessons into a structured, easily searchable format designed for fast revision and getting the basics right. 
 
 ---
 
@@ -60,4 +60,4 @@ sqlite3 database.db < 05_advanced_queries/queries.sql
 
 ```
 
-> **Credit:** All core concepts and learning progressions in this repository are based on the curriculum provided by [SQLBolt](https://sqlbolt.com/).
+> **Credit:** All core concepts and learning progressions in this repository are based on the curriculum provided by [SQLBolt](https://sqlbolt.com).
