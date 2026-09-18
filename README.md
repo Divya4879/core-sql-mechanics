@@ -30,7 +30,7 @@ These modules cover the structural backbone of SQL and are located in the `sql_f
 * **`02_joins_and_nulls`:** Database normalization, `INNER JOIN`, `LEFT/RIGHT JOIN`, and handling `NULL` records.
 * **`03_aggregates_and_execution`:** Grouping data (`GROUP BY`), aggregate functions (`SUM`, `COUNT`, `AVG`), filtering groups (`HAVING`), and the 8-step execution pipeline.
 * **`04_crud_and_schema`:** DDL (`CREATE`, `ALTER`, `DROP`), DML (`INSERT`, `UPDATE`, `DELETE`), and constraints.
-* **`05_advanced_topics`:** Subqueries, Set Operations (`UNION`, `INTERSECT`), and conditional logic (`CASE WHEN`, `COALESCE`).
+* **`05_advanced_topics`:** Subqueries, Set Operations (`UNION`, `INTERSECT`).
 
 ---
 
