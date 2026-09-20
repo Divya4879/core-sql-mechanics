@@ -33,10 +33,10 @@ JOIN team AS t
 By default, writing `JOIN` in SQL implies an **`INNER JOIN`**.
 
 * **`INNER JOIN`:** Retains only rows that find an exact mutual match in both tables. If a record exists in Table A but has no corresponding foreign key in Table B, it is dropped from the result grid.
+
 * **`LEFT JOIN` (Outer Join):** Retains *all* rows from the left table, regardless of whether a match exists in the right table. Where matches are missing, the database populates the columns with `NULL`.
+
 * *Use Case:* Finding entities with zero activity (e.g., listing all teams, including those that scored zero goals).
-
-
 
 ---
 

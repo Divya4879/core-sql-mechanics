@@ -98,7 +98,7 @@ WHERE casting.actorid = (SELECT id FROM actor WHERE name = 'Harrison Ford')
 
 ### 2. Relational Set Filtering (`IN` Subqueries)
 
-To answer complex analytical questions—such as finding all lead actors in films associated with a specific individual—queries use nested set matching:
+To answer complex analytical questions, such as finding all lead actors in films associated with a specific individual, queries use nested set matching:
 
 ```sql
 -- Find lead actors across all films that 'Julie Andrews' participated in
