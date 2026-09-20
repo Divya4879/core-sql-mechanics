@@ -1,6 +1,6 @@
 # SQL Date, Time & Extrema Guide: Fundamentals to Modern Practices
 
-Dates and times in SQL can feel confusing because different databases handle them differently. However, once you grasp a few core rules—**data types, literals, component extraction, and aggregate matching**—date manipulation becomes straightforward and predictable.
+Dates and times in SQL can feel confusing because different databases handle them differently. However, once you grasp a few core rules-**data types, literals, component extraction, and aggregate matching**-date manipulation becomes straightforward and predictable.
 
 ---
 
@@ -35,11 +35,12 @@ INSERT INTO t_dttest VALUES (
 
 ```
 
-> ⚠️ **Engineering Practice Note:**
-> * **[Modern / Best Practice]:** Always use explicit type literals like `DATE '1982-05-20'` or `TIMESTAMP '...'`. This prevents database engines from misinterpreting month/day order based on local server settings.
-> * **[Legacy / Obsolete]:** Passing bare strings like `'1982-05-20'` and hoping the database implicitly casts them correctly. This frequently breaks when moving code between servers with different regional settings (e.g., US `MM/DD/YYYY` vs. UK `DD/MM/YYYY`).
-> 
-> 
+⚠️ **Engineering Practice Note:**
+
+* **[Modern / Best Practice]:** Always use explicit type literals like `DATE '1982-05-20'` or `TIMESTAMP '...'`. This prevents database engines from misinterpreting month/day order based on local server settings.
+
+* **[Legacy / Obsolete]:** Passing bare strings like `'1982-05-20'` and hoping the database implicitly casts them correctly. This frequently breaks when moving code between servers with different regional settings (e.g., US `MM/DD/YYYY` vs. UK `DD/MM/YYYY`).
+
 
 ---
 
@@ -89,10 +90,10 @@ WHERE DATE '1976-05-20' BETWEEN wk - INTERVAL '7' DAY AND wk;
 ```
 
 **Engineering Practice Note:**
-> * **[Modern / Best Practice]:** Use ANSI standard `INTERVAL '7' DAY` syntax for portable database design.
-> * **[Legacy / Obsolete]:** Vendor-specific syntax like `wk - 7` (which treats integers as days blindly) or proprietary shortcut functions that vary wildly between MySQL, Postgres, and SQL Server.
-> 
-> 
+* **[Modern / Best Practice]:** Use ANSI standard `INTERVAL '7' DAY` syntax for portable database design.
+* **[Legacy / Obsolete]:** Vendor-specific syntax like `wk - 7` (which treats integers as days blindly) or proprietary shortcut functions that vary wildly between MySQL, Postgres, and SQL Server.
+
+
 
 ---
 
@@ -115,11 +116,12 @@ WHERE song = 'Rio';
 
 ```
 
-> ⚠️ **Engineering Practice Note:**
-> * **[Modern / Best Practice]:** Use the ANSI standard **`EXTRACT(PART FROM column)`** function. It works across almost all modern enterprise databases (Postgres, Oracle, Snowflake, BigQuery).
-> * **[Legacy / Obsolete]:** Relying on database-specific shortcut functions like `YEAR(wk)` or `MONTH(wk)`. While supported in MySQL/SQL Server, they fail or require syntax changes if you migrate to Postgres or standard-compliant engines.
-> 
-> 
+⚠️ **Engineering Practice Note:**
+
+* **[Modern / Best Practice]:** Use the ANSI standard **`EXTRACT(PART FROM column)`** function. It works across almost all modern enterprise databases (Postgres, Oracle, Snowflake, BigQuery).
+
+* **[Legacy / Obsolete]:** Relying on database-specific shortcut functions like `YEAR(wk)` or `MONTH(wk)`. While supported in MySQL/SQL Server, they fail or require syntax changes if you migrate to Postgres or standard-compliant engines.
+
 
 ---
 
@@ -174,7 +176,7 @@ JOIN (
 
 ```
 
-### Approach B: Window Functions (`ROW_NUMBER()`) — [Modern Gold Standard]
+### Approach B: Window Functions (`ROW_NUMBER()`) - [Modern Gold Standard]
 
 Writing multi-table joins just to find a maximum value per group can feel clunky. Modern SQL uses **Window Functions** to assign row numbers ranked by date within each partition.
 
@@ -190,9 +192,11 @@ WHERE rn = 1;
 
 ```
 
-> 🚀 **Engineering Practice Note:**
-> * **[Modern / Best Practice]:** Use Window Functions (`ROW_NUMBER()` or `RANK()`). They are cleaner, vastly easier to read for complex group-extrema problems, and standard across all modern SQL engines.
-> * **[Legacy / Obsolete]:** Correlated subqueries or manual table joins against aggregated group views. They are harder to debug and often run slower on large datasets.
+🚀 **Engineering Practice Note:**
+
+* **[Modern / Best Practice]:** Use Window Functions (`ROW_NUMBER()` or `RANK()`). They are cleaner, vastly easier to read for complex group-extrema problems, and standard across all modern SQL engines.
+
+* **[Legacy / Obsolete]:** Correlated subqueries or manual table joins against aggregated group views. They are harder to debug and often run slower on large datasets.
 
 ---
 
@@ -224,11 +228,13 @@ WHERE singer = 'Madness';
 
 ```
 
-> ⚠️ **Engineering Practice Note:**
-> * **[Modern / Best Practice]:** Use database-native casting or international standard ISO formats (`YYYY-MM-DD`) for data transport, and handle custom formatting presentation layers on the frontend/application side when possible.
-> * **[Legacy / Obsolete]:** Relying heavily on engine-specific string concatenation (`||` or `CONCAT`) and `LPAD` to build custom dates in SQL queries, as date formatting behavior varies wildly across database vendors (e.g., MySQL uses `DATE_FORMAT`, Oracle/Postgres use `TO_CHAR`).
-> 
-> 
+⚠️ **Engineering Practice Note:**
+
+* **[Modern / Best Practice]:** Use database-native casting or international standard ISO formats (`YYYY-MM-DD`) for data transport, and handle custom formatting presentation layers on the frontend/application side when possible.
+
+* **[Legacy / Obsolete]:** Relying heavily on engine-specific string concatenation (`||` or `CONCAT`) and `LPAD` to build custom dates in SQL queries, as date formatting behavior varies wildly across database vendors (e.g., MySQL uses `DATE_FORMAT`, Oracle/Postgres use `TO_CHAR`).
+
+
 
 ---
 

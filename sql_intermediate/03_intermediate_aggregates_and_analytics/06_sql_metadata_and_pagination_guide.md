@@ -9,6 +9,7 @@ Below is the complete reference guide structured by engineering priority (Tiers)
 ## 📊 Summary of Tiers
 
 * **Tier 1 (Heavy Hitters):** Core patterns used daily in full-stack development, API design, and data processing (`LIMIT`, `OFFSET`, `ROW_NUMBER()`).
+
 * **Tier 2 (DBA & Debugging Tools):** Diagnostic and schema inspection utilities used for troubleshooting and architecture auditing.
 
 ---
@@ -141,10 +142,15 @@ WHERE table_name = 'bbc';
 * **Tier:** Tier 2 (Niche Diagnostic)
 * **Purpose:** Identify the precise database management system and patch version.
 * **Explanation:** Used when troubleshooting syntax incompatibilities during server upgrades or checking if specific features are available.
+
 * **Syntax & Engine Variations:**
+
 * *MySQL / Postgres:* `SELECT version();`
+
 * *SQL Server / Sybase:* `SELECT @@version;`
+
 * *SQLite:* `SELECT sqlite_version();`
+
 * *Oracle:* `SELECT * FROM v$version;`
 
 
@@ -167,10 +173,15 @@ SELECT version();
 ### 6. Quick Table Structure Viewer (`DESCRIBE`)
 
 * **Tier:** Tier 2 (DBA & Debugging Tool)
+
 * **Purpose:** Provide a fast, command-line summary of a table's schema definition.
+
 * **Explanation:** A developer shortcut in command-line interfaces (CLIs) to see field names and types quickly without writing a full `information_schema` query.
-* **Syntax & Engine Variations:**
+
+**Syntax & Engine Variations:**
+
 * *MySQL / SQLite:* `DESCRIBE table_name;` (or `DESC table_name`)
+
 * *SQL Server:* `sp_columns @table_name = 'table_name';`
 
 
@@ -223,7 +234,9 @@ SOME MORE TIPS/TRICKS:-
 In our pagination breakdown, we looked at the modern standard `LIMIT 10 OFFSET 10`. However, **MySQL** has a legacy/alternative comma-separated syntax that trips up engineers constantly because **the order flips**:
 
 * Standard/Postgres: `LIMIT 10 OFFSET 10` *(Take 10 rows, skip 10)*
+
 * MySQL legacy shorthand: `LIMIT 10, 10` *(Skip 10, take 10)*
+
 If you accidentally mix those up in MySQL, your pagination queries will pull completely wrong data ranges.
 
 ### 2. MySQL/MariaDB Terminal Shortcuts (`SHOW TABLES` & `SHOW COLUMNS`)
