@@ -1,6 +1,6 @@
 # Architectural Guide: Mastering Self Joins and Complex Transit Networks
 
-Transit network databases—such as the Edinburgh Buses schema—introduce a unique relational challenge: entities within the same table need to be compared against each other. When you need to find relationships *within* a single table (like tracking two different stops on the exact same bus route), a standard join fails because a single row only holds one stop at a time. This requires a **Self Join**.
+Transit network databases such as the Edinburgh Buses schema, introduce a unique relational challenge: entities within the same table need to be compared against each other. When you need to find relationships *within* a single table (like tracking two different stops on the exact same bus route), a standard join fails because a single row only holds one stop at a time. This requires a **Self Join**.
 
 This guide breaks down the database schema, the underlying logic of self joins, and repeatable patterns so you can master these problems independently.
 
@@ -50,14 +50,9 @@ WHERE a.stop = [Origin_ID]
 ```
 
 * `a` represents the origin leg of the journey.
-
-
 * `b` represents the destination leg of the journey.
 
-
 * Matching on `a.company = b.company AND a.num = b.num` ensures we are looking at the *same physical bus*.
-
-
 
 ---
 
@@ -69,8 +64,6 @@ WHERE a.stop = [Origin_ID]
 
 * **Logic:** Filter the route table for rows matching either stop ID, group by the bus company and number, and use `HAVING COUNT(*) = 2` to ensure *both* stops are visited by that specific route.
 
-
-
 ```sql
 SELECT company, num, COUNT(*)
 FROM route 
@@ -80,8 +73,11 @@ HAVING COUNT(*) = 2;
 ```
 
 ### Pattern 2: Basic Self Join with Stop Names (`stops` Lookup Aliasing)
+
 **Goal:** Display human-readable stop names instead of raw IDs for a connection between two places.
+
 *   **Logic:** Join `route a` and `route b` on matching company and bus number, then join the `stops` table *twice* (aliased as `stopa` and `stopb`) to translate both stop IDs into names.
+
 ```sql
 SELECT a.company, a.num, stopa.name, stopb.name
 FROM route a 
@@ -95,7 +91,7 @@ WHERE stopa.name = 'Craiglockhart'
   AND stopb.name = 'London Road';
 ```
 
-### Pattern 3: Using Subqueries for Name Resolution (Exercises 7 & 8)
+### Pattern 3: Using Subqueries for Name Resolution
 
 **Goal:** Connect stops when you only have their text names (e.g., 'Haymarket' and 'Leith', or 'Craiglockhart' and 'Tollcross').
 
@@ -141,135 +137,109 @@ WHERE stopa.name = 'Craiglockhart'
 
 ---
 
-## Part 4: General Framework for Tackling Any Join/Self-Join Query
+### Pattern 5: Multi-Hop / Two-Bus Transfers (The Ultimate Self-Join Test)
 
-When faced with a difficult query, never code blindly. Follow these steps:
+**Goal:** Find routes involving two buses to go from a starting point (Craiglockhart) to a destination (Lochend).
 
-1.  **Identify the Entities:** What tables do I have? (`stops`, `route`).
+* **Logic:** This requires chaining multiple route instances together. You find routes leaving the origin stop, routes arriving at the destination stop, and bridge them together through an intermediate shared transfer stop.
 
-2.  **Determine the Scope:** Am I looking at a single point, a direct connection (1 hop), or a transfer (2 hops)?
+#### Problem Statement
 
-    *   *Direct:* 1 instance of `route` (plus `stops` lookup).
+Find all bus journeys involving **two buses** (one transfer) that can take a passenger from **Craiglockhart** to **Lochend**. The output must display:
 
-    *   *Self Join (Direct connection between two points):* 2 instances of `route` (`a` and `b`) joined on shared `num` and `company`.
+1. The bus number for the first bus (`a.num`).
 
-    *   *Multi-hop (Transfer):* 3 instances of `route` linked through a common transfer stop.
+2. The operating company for the first bus (`a.company`).
 
-3.  **Establish the Linkages:** Write out your `ON` conditions explicitly. If matching a bus, always tie `company = company` and `num = num`. If matching a stop name, bridge through `stops.id`.
+3. The human-readable name of the transfer stop (`stopb.name`).
 
-4.  **Filter with `WHERE`:** Apply specific text filters (e.g., `'Craiglockhart'`) using either direct ID matches or subqueries.
+4. The bus number for the second bus (`d.num`).
 
----
-
-Here is the **Universal Self-Join Blueprint** section. You can copy and paste this directly at the bottom of your notes file as the general, schema-agnostic pattern reference for interviews:
+5. The operating company for the second bus (`d.company`).
 
 ---
 
-## PART 5: The Universal Blueprint of Self Joins (For Any Interview)
+#### The Core Logic & Hint Breakdown
 
-A **Self Join** is simply a regular join (`INNER`, `LEFT`, etc.) where a database table is joined to **an exact copy of itself** using table aliases.
+* **The Hint:** Self-join twice to find buses that visit Craiglockhart and Lochend, then join those on matching stops.
 
-### When do you need a Self Join?
+**How it works conceptually:**
 
-You need a self join whenever data that answers your question lives **inside the same table**, rather than across two separate tables.
-
-The three most common universal patterns you will face in interviews are:
-
-1. **Hierarchies & Trees** (e.g., Employees and Managers, Category sub-categories).
-2. **Networks & Graphs** (e.g., Bus routes, Flights connecting airports, Social media mutuals).
-3. **Sequential / Comparative Rows** (e.g., Finding transactions or logs that occurred right after another for the same user).
+* Instead of just two table instances (`a` and `b`), a two-bus transfer requires a chain of four route aliases (`a`, `b`, `c`, and `d`).
+* **Leg 1 (`a` & `b`):** Represents the first bus trip starting at 'Craiglockhart' and traveling to a transfer stop.
+* **The Transfer Bridge (`b.stop = c.stop`):** Links the first bus route to the second bus route at a shared physical station ID.
+* **Leg 2 (`c` & `d`):** Represents the second bus trip traveling from that transfer stop onward to 'Lochend'.
 
 ---
 
-### Universal Pattern 1: Hierarchical Data (Adjacency Lists)
-
-*Classic Interview Question:* "Write a query to show each employee's name alongside their manager's name."
-
-* **The Schema:** An `employees` table containing `id`, `name`, and `manager_id` (which references `id` in the same table).
-**The Logic:**
-* Table `e` represents the employee.
-* Table `m` represents their manager.
-* The link is `e.manager_id = m.id`.
-* *Crucial Trap:* The CEO doesn't have a manager (`manager_id` is `NULL`). If you use an `INNER JOIN`, the CEO disappears. You **must use a `LEFT JOIN**` to ensure top-level entities are preserved.
-
-
+#### Full Code Implementation
 
 ```sql
-SELECT 
-    e.name AS employee_name, 
-    COALESCE(m.name, 'Top Boss') AS manager_name
-FROM employees e
-LEFT JOIN employees m 
-  ON e.manager_id = m.id;
+SELECT DISTINCT 
+    a.num AS first_bus_num,
+    a.company AS first_bus_company,
+    stopb.name AS transfer_stop,
+    d.num AS second_bus_num,
+    d.company AS second_bus_company
+FROM route a
+-- Leg 1: Match the first bus route from origin
+JOIN route b ON (a.company = b.company AND a.num = b.num)
+-- The Transfer Bridge: Connect bus 1's path to bus 2's path at a common stop
+JOIN route c ON (b.stop = c.stop)
+-- Leg 2: Match the second bus route to the destination
+JOIN route d ON (c.company = d.company AND c.num = d.num)
+-- Translate IDs into human-readable stop names
+JOIN stops stopa ON (a.stop = stopa.id)
+JOIN stops stopb ON (b.stop = stopb.id)
+JOIN stops stopd ON (d.stop = stopd.id)
+WHERE stopa.name = 'Craiglockhart' 
+  AND stopd.name = 'Lochend';
 
 ```
 
 ---
 
-### Universal Pattern 2: Network & Path Matching (Graph Traversal)
+#### Step-by-Step Explanation 
 
-*Classic Interview Question:* "Find all pairs of airports that have direct flights connecting them in both directions."
+1. **`route a` and `route b`:** These are self-joined on `a.company = b.company AND a.num = b.num` to isolate a continuous single bus line running from the origin.
 
-* **The Schema:** A `flights` table containing `origin_airport` and `destination_airport`.
-* **The Logic:** You want to find rows where Flight A goes from X to Y, and Flight B goes from Y to X.
+2. **`JOIN stops stopa`:** Translates the starting point's stop ID (`a.stop`) into text, allowing us to filter for `'Craiglockhart'` in the `WHERE` clause.
 
-```sql
-SELECT 
-    f1.origin_airport, 
-    f1.destination_airport
-FROM flights f1
-JOIN flights f2 
-  ON f1.origin_airport = f2.destination_airport 
- AND f1.destination_airport = f2.origin_airport
-WHERE f1.origin_airport < f1.destination_airport; 
+3. **`JOIN route c` on `b.stop = c.stop`:** This is the critical transition point. It looks for *any other* bus route (`c`) that happens to visit the exact same physical stop (`b.stop`) where our first bus can drop passengers off.
 
-```
+4. **`route c` and `route d`:** These are self-joined to establish the full trajectory of the second connecting bus line from the transfer stop to the final destination.
 
-* *The Inequality Trick (`<`):* When pairing items symmetrically, comparing primary keys or string names alphabetically with `<` or `>` prevents your query from spitting out duplicate mirror-image rows (e.g., showing both A->B and B->A).
+5. **`JOIN stops stopd`:** Translates the final drop-off stop ID into text so we can filter for `'Lochend'`.
+
+6. **`DISTINCT`:** Essential because multiple route positioning rows or duplicate path combinations can otherwise generate redundant rows in the output grid.
 
 ---
 
-### Universal Pattern 3: Sequential Row Comparison (Time-Series / Logs)
+## Part 4: General Framework for Tackling Any Join / Self-Join Query
 
-*Classic Interview Question:* "Find user login sessions that happened within 30 minutes of their previous session."
+When faced with a complex database query, never code blindly. Walk through this mental checklist:
 
-* **The Schema:** A `sessions` table containing `user_id` and `login_time`.
-* **The Logic:** Join the table to itself where the user is the same, but the time of session 2 is strictly greater than session 1.
+1. **Identify the Entities:** Determine what physical tables hold your data (e.g., `stops`, `route`).
 
-```sql
-SELECT 
-    s1.user_id, 
-    s1.login_time AS previous_login, 
-    s2.login_time AS next_login
-FROM sessions s1
-JOIN sessions s2 
-  ON s1.user_id = s2.user_id
-  AND s2.login_time > s1.login_time
-  -- Optional subquery condition to find the *immediate* next session only
-  AND s2.login_time = (
-      SELECT MIN(s3.login_time) 
-      FROM sessions s3 
-      WHERE s3.user_id = s1.user_id 
-        AND s3.login_time > s1.login_time
-  );
+2. **Determine the Scope:**
+* *Direct lookup:* 1 instance of the table plus lookups.
 
-```
+* *Self-join (Direct connection between two points in the same list):* 2 virtual instances of the same table using distinct aliases (`a` and `b`).
+
+* *Multi-hop / Transfers:* 3 or more virtual instances chained through common intermediate attributes.
+
+3. **Establish the Linkages:** Write out your `ON` conditions explicitly. Match shared keys or characteristics (such as matching bus lines via `company` and `num`).
+
+4. **Filter with `WHERE`:** Isolate specific starting points, destination constraints, or attributes using direct comparisons, IDs, or subqueries.
 
 ---
 
-## PART 6: The Universal 4-Step Self-Join Framework
+## Part 5: General Principles for Solving Self-Joins
 
-Whenever an interview question or a complex database query introduces a relationship within a single table, stop and run through this exact mental checklist:
+* **Always Alias Explicitly:** Never query a self-join without using distinct table aliases (e.g., `a` and `b`, or `route a` and `route b`). Treating them as separate conceptual tables prevents ambiguous column reference errors.
 
-1. **Spot the Single-Source Clue:** Look at the prompt. If it asks you to find relationships between items that belong to the same list (Employees & Managers, Stops & Stops, Airports & Airports), **immediately write down two table aliases** (e.g., `FROM table x JOIN table y`).
-2. **Define the Aliases' Roles:**
-* What does alias `x` represent? (e.g., The starting point, the employee, flight leg 1).
-* What does alias `y` represent? (e.g., The destination, the manager, flight leg 2).
+* **Define the Relationship Direction:** Know whether your self-join represents a directional graph (like sequential transit stops or hierarchical management) or a symmetric pairing, and use appropriate equality or inequality operators to manage duplicate mirror rows.
 
+* **Choose the Right Join Type:** Defaulting to an `INNER JOIN` will strip out rows where the secondary reference is missing (like top-level managers or unlinked entities). Use a `LEFT JOIN` if you need to preserve records that lack a matching pair.
 
-3. **Establish the Glue (`ON` clause):** What binds them?
-* Is it a foreign key pointing to the same table? (`x.manager_id = y.id`)
-* Is it a shared characteristic forming a bridge? (`x.num = y.num AND x.company = y.company`)
-
-
-4. **Guard Against Missing Data (`JOIN` type):** Ask yourself: *Can the primary entity exist without a match?* If yes (like a CEO with no manager, or a bus stop with no outbound connection), use a `LEFT JOIN`. If it requires an absolute match on both sides, use an `INNER JOIN`.
+* **Isolate One Leg at a Time:** When constructing multi-step paths or transfers, build and test the first leg of the join independently before appending the next table alias instance to the query tree.
