@@ -387,7 +387,7 @@ These topics represent the material currently documented in the repository; the 
 
 ---
 
-# 📚 Part 7: Sources
+# 📚 Part 6: Sources
 
 * **Foundations:** [SQLBolt](https://sqlbolt.com) - used as the primary learning source for the foundational section.
 * **Intermediate:** [SQLZoo](https://sqlzoo.net) - used as the primary learning source for the intermediate section.
